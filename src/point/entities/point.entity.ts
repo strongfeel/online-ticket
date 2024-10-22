@@ -17,8 +17,11 @@ export class Point {
   @Column({ type: 'int', nullable: false, unsigned: true })
   userId: number;
 
+  @Column({ type: 'int', unsigned: true, default: 0 })
+  pointDetails: number;
+
   @Column({ type: 'int', default: 1000000, nullable: false, unsigned: true })
-  point: number;
+  totalPoint: number;
 
   @Column({ type: 'varchar', nullable: false })
   reason: string;
