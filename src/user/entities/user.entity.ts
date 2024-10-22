@@ -1,41 +1,41 @@
 import { IsEnum, IsString } from 'class-validator';
+import { Role } from '../types/userRole.type';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Point } from 'src/point/entities/point.entity';
+import { any } from 'joi';
 
-enum UserRole {
-  ADMIN = 'ADMIN',
-  USER = 'USER',
-}
-
+@Index('email', ['email'], { unique: true })
 @Entity({ name: 'users' })
 export class User {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @IsString()
-  @Column('varchar', { nullable: false })
+  @Column({ type: 'varchar', nullable: false, unique: true })
   email: string;
 
-  @IsString()
-  @Column('varchar', { length: 10, select: false, nullable: false })
+  @Column({ type: 'varchar', select: false, nullable: false })
   password: string;
 
-  @IsString()
-  @Column('varchar', { nullable: false })
-  nickName: string;
+  @Column({ type: 'varchar', nullable: false, unique: true })
+  nickname: string;
 
-  @IsEnum(UserRole)
-  @Column('varchar')
-  role: UserRole;
+  @Column({ type: 'enum', enum: Role, default: Role.User })
+  role: Role;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany((type) => Point, (point) => point.user)
+  points: Point[];
 }

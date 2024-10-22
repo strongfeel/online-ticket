@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { compare, hash } from 'bcrypt';
 import { Repository } from 'typeorm';
 
 import {
@@ -10,60 +11,80 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
+import { Point } from '../point/entities/point.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private jwtService: JwtService,
+    @InjectRepository(Point) private pointRepository: Repository<Point>,
+    private readonly jwtService: JwtService,
   ) {}
+
+  async register(email: string, password: string, nickname: string) {
+    const existingUser = await this.findByEmail(email);
+    if (existingUser) {
+      throw new ConflictException(
+        '이미 해당 이메일로 가입된 사용자가 있습니다!',
+      );
+    }
+
+    const existingEmail = await this.userRepository.findOne({
+      where: { nickname: nickname },
+    });
+    if (existingEmail) {
+      throw new ConflictException(
+        '이미 해당 닉네임으로 가입된 사용자가 있습니다!',
+      );
+    }
+
+    const hashedPassword = await hash(password, 10);
+    const newUser = await this.userRepository.save({
+      email,
+      password: hashedPassword,
+      nickname,
+    });
+
+    const newPoint = await this.pointRepository.save({
+      userId: newUser.id,
+      reason: '회원가입 포인트',
+    });
+  }
 
   async login(email: string, password: string) {
     const user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'password'],
+      select: ['id', 'email', 'password'],
     });
 
     if (_.isNil(user)) {
-      throw new NotFoundException(`유저를 찾을 수 없습니다. ID: ${email}`);
+      throw new UnauthorizedException('이메일을 확인해주세요.');
     }
 
-    if (user.password !== password) {
-      throw new UnauthorizedException(
-        `유저의 비밀번호가 올바르지 않습니다. ID: ${email}`,
-      );
+    if (!(await compare(password, user.password))) {
+      throw new UnauthorizedException('비밀번호를 확인해주세요.');
     }
 
-    const payload = { id: user.id };
-    const accessToken = await this.jwtService.signAsync(payload);
-    return accessToken;
+    const payload = { email, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 
-  async create(createUserDto: CreateUserDto) {
-    const existUser = await this.findOne(createUserDto.email);
-    if (!_.isNil(existUser)) {
-      throw new ConflictException(
-        `이미 가입된 ID입니다. ID: ${createUserDto.email}`,
-      );
-    }
-
-    const newUser = await this.userRepository.save(createUserDto);
-
-    const payload = { id: newUser.id };
-    const accessToken = await this.jwtService.signAsync(payload);
-    return accessToken;
-  }
-
-  checkUser(userPayload: any) {
-    return `유저 정보: ${JSON.stringify(userPayload)}}`;
-  }
-
-  private async findOne(email: string) {
-    return await this.userRepository.findOne({
-      where: { email },
-      select: ['email', 'createdAt', 'updatedAt'],
+  async getUser(user: User) {
+    const getUserPoint = await this.pointRepository.findOne({
+      where: { userId: user.id },
+      select: { point: true },
     });
+    const getNickName = await this.userRepository.findOne({
+      where: { id: user.id },
+      select: { nickname: true },
+    });
+    return { getNickName, getUserPoint };
+  }
+
+  async findByEmail(email: string) {
+    return await this.userRepository.findOneBy({ email });
   }
 }
