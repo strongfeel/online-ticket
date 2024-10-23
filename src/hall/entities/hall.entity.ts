@@ -28,6 +28,6 @@ export class Hall {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany((type) => Show, (show) => show.hall)
-  shows: Show[];
+  // @OneToMany((type) => Show, (show) => show.hall)
+  // shows: Show[];
 }

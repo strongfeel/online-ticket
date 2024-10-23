@@ -38,6 +38,6 @@ export class Show {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne((type) => Hall, (hall) => hall.shows, { onDelete: 'CASCADE' })
-  hall: Hall;
+  // @ManyToOne((type) => Hall, (hall) => hall.shows, { onDelete: 'CASCADE' })
+  // hall: Hall;
 }

@@ -23,24 +23,24 @@ export class HallController {
   @Roles(Role.Admin)
   @Post('/admin/hall')
   async createHall(@Body() createHallDto: CreateHallDto) {
-    await this.hallService.create(createHallDto);
+    return await this.hallService.create(createHallDto);
   }
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Put('/admin/hall:id')
+  @Put('/admin/hall/:id')
   async updateHall(
     @Param('id') id: number,
     @Body() updateHallDto: UpdateHallDto,
   ) {
-    await this.hallService.update(id, updateHallDto);
+    return await this.hallService.update(id, updateHallDto);
   }
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Delete('/admin/hall:id')
+  @Delete('/admin/hall/:id')
   async deleteHall(@Param('id') id: number) {
-    await this.hallService.delete(id);
+    return await this.hallService.delete(id);
   }
 
   @Get('/hall')

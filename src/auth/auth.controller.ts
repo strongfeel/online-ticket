@@ -14,7 +14,7 @@ export class AuthController {
       throw new UnauthorizedException('비밀번호 확인을 다시 작성해 주세요.');
     }
 
-    await this.authService.register(
+    return await this.authService.register(
       registerDto.email,
       registerDto.password,
       registerDto.nickname,
@@ -24,6 +24,6 @@ export class AuthController {
 
   @Post('/login')
   async login(@Body() loginDto: LoginDto) {
-    await this.authService.login(loginDto.email, loginDto.password);
+    return await this.authService.login(loginDto.email, loginDto.password);
   }
 }
