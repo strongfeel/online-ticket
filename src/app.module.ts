@@ -8,6 +8,9 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { Point } from './point/entities/point.entity';
+import { HallModule } from './hall/hall.module';
+import { ShowModule } from './show/show.module';
+import { Hall } from './hall/entities/hall.entity';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -20,7 +23,7 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User, Point],
+    entities: [User, Point, Hall],
     synchronize: configService.get('DB_SYNC'),
     logging: true,
   }),
@@ -44,6 +47,8 @@ const typeOrmModuleOptions = {
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     AuthModule,
     UserModule,
+    HallModule,
+    ShowModule,
   ],
   controllers: [],
   providers: [],

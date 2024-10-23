@@ -1,4 +1,3 @@
-import { IsEmail, IsEnum, IsString } from 'class-validator';
 import { Role } from '../types/userRole.type';
 import {
   Column,
@@ -10,7 +9,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Point } from 'src/point/entities/point.entity';
-import { any } from 'joi';
 
 @Index('email', ['email'], { unique: true })
 @Entity({ name: 'users' })

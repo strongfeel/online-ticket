@@ -54,7 +54,7 @@ export class AuthService {
 
     await this.pointRepository.save({
       userId: newUser.id,
-      reason: '회원가입 포인트',
+      reason: '회원가입 증정 포인트',
     });
 
     return await this.userRepository.findOne({
@@ -85,6 +85,7 @@ export class AuthService {
 
     const payload = { email, sub: user.id };
     return {
+      message: '로그인을 완료 하였습니다.',
       access_token: this.jwtService.sign(payload),
     };
   }
