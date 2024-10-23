@@ -3,8 +3,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -14,10 +14,7 @@ export class Show {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'int', nullable: false, unsigned: true })
-  hallId: number;
-
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: false, unique: true })
   showName: string;
 
   @Column({ type: 'varchar', nullable: false })
@@ -29,7 +26,7 @@ export class Show {
   @Column({ type: 'varchar', nullable: false })
   category: string;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ type: 'int', nullable: false, unsigned: true })
   price: number;
 
   @CreateDateColumn()
@@ -38,6 +35,7 @@ export class Show {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // @ManyToOne((type) => Hall, (hall) => hall.shows, { onDelete: 'CASCADE' })
+  // @ManyToOne((type) => Hall, (hall) => hall.shows)
+  // @JoinColumn({ name: 'hall_id' })
   // hall: Hall;
 }

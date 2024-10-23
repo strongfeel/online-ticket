@@ -15,14 +15,17 @@ export class UserService {
   ) {}
 
   async getUser(user: User) {
-    const getTotalPoint = await this.pointRepository.findOne({
-      where: { userId: user.id },
-      select: { totalPoint: true },
-      order: { createdAt: 'DESC' },
-    });
+    const userId = user.id;
+    const getTotalPoint = await this.pointRepository
+      .createQueryBuilder('point')
+      .leftJoinAndSelect('point.user', 'user')
+      .select(['point.totalPoint'])
+      .where('user.id = :userId', { userId })
+      .orderBy('point.createdAt', 'DESC')
+      .getOne();
     const getNickName = await this.userRepository.findOne({
       where: { id: user.id },
-      select: { nickname: true },
+      select: ['nickname'],
     });
     return { getNickName, getTotalPoint };
   }

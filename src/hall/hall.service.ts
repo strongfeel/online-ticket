@@ -2,15 +2,13 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Hall } from './entities/hall.entity';
+import _ from 'lodash';
 import { Repository } from 'typeorm';
 import { CreateHallDto } from './dto/create-hall.dto';
 import { UpdateHallDto } from './dto/update-hall.dto';
-import _ from 'lodash';
-import { retry } from 'rxjs';
+import { Hall } from './entities/hall.entity';
 
 @Injectable()
 export class HallService {
@@ -36,7 +34,6 @@ export class HallService {
 
   async update(id: number, updateHallDto: UpdateHallDto) {
     await this.verifyHallById(id);
-    console.log(updateHallDto);
 
     if (updateHallDto.hallName) {
       const existingHall = await this.hallRepository.findBy({
@@ -45,14 +42,14 @@ export class HallService {
 
       if (existingHall.length !== 0) {
         throw new ConflictException(
-          '이미 해당 공연장 이름으로 만들어진 공연장이 있습니다!',
+          '이미 해당하는 이름으로 만들어진 공연장이 있습니다!',
         );
       }
     }
 
-    await this.hallRepository.update({ id }, updateHallDto);
+    const hall = await this.hallRepository.update({ id }, updateHallDto);
 
-    return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
+    return { message: '공연장 수정을 성공적으로 완료 하였습니다.', hall };
   }
 
   async delete(id: number) {

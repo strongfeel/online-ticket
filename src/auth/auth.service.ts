@@ -53,7 +53,7 @@ export class AuthService {
     });
 
     await this.pointRepository.save({
-      userId: newUser.id,
+      user: newUser,
       reason: '회원가입 증정 포인트',
     });
 

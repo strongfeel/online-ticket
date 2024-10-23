@@ -12,9 +12,6 @@ export class Point {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'int', nullable: false, unsigned: true })
-  userId: number;
-
   @Column({ type: 'int', unsigned: true, default: 0 })
   pointDetails: number;
 
@@ -27,6 +24,6 @@ export class Point {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne((type) => User, (user) => user.points, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.points)
   user: User;
 }
