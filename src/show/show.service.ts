@@ -9,58 +9,101 @@ import { Repository } from 'typeorm';
 import { CreateShowDto } from './dto/create-show.dto';
 import { UpdateShowDto } from './dto/update-show.dto';
 import _ from 'lodash';
+import { Hall } from 'src/hall/entities/hall.entity';
 
 @Injectable()
 export class ShowService {
-  //   constructor(
-  //     @InjectRepository(Show) private showRepository: Repository<Show>,
-  //   ) {}
-  //   async create(createShowDto: CreateShowDto) {
-  //     const existingShow = await this.showRepository.findBy({
-  //       showName: createShowDto.showName,
-  //     });
-  //     if (existingShow.length !== 0) {
-  //       throw new ConflictException(
-  //         '이미 해당 공연 이름으로 만들어진 공연이 있습니다!',
-  //       );
-  //     }
-  //     const show = await this.showRepository.save(createShowDto);
-  //     return show;
-  //   }
-  //   async update(id: number, updateShowDto: UpdateShowDto) {
-  //     await this.verifyShowById(id);
-  //     if (updateShowDto.showName) {
-  //       const existingShow = await this.showRepository.findBy({
-  //         showName: updateShowDto.showName,
-  //       });
-  //       if (existingShow.length !== 0) {
-  //         throw new ConflictException(
-  //           '이미 해당하는 이름으로 만들어진 공연이 존재합니다!',
-  //         );
-  //       }
-  //     }
-  //     const show = await this.showRepository.update({ id }, updateShowDto);
-  //     return { message: '공연 수정을 성공적으로 완료 하였습니다.', show };
-  //   }
-  //   async delete(id: number) {
-  //     await this.verifyShowById(id);
-  //     await this.showRepository.delete({ id: id });
-  //     return { message: '공연장 삭제가 완료 되었습니다.' };
-  //   }
-  //   async findAll(): Promise<Show[]> {
-  //     const getShow = await this.showRepository.find({
-  //       select: ['id', 'showName', 'category', 'price'],
-  //     });
-  //     if (getShow.length === 0) {
-  //       throw new BadRequestException('등록된 공연장이 없습니다.');
-  //     }
-  //     return getShow;
-  //   }
-  //   private async verifyShowById(id: number) {
-  //     const show = await this.showRepository.findOneBy({ id });
-  //     if (_.isNil(show)) {
-  //       throw new BadRequestException('존재하지 않는 공연장입니다.');
-  //     }
-  //     return show;
-  //   }
+  constructor(
+    @InjectRepository(Show) private showRepository: Repository<Show>,
+    @InjectRepository(Hall) private hallRepository: Repository<Hall>,
+  ) {}
+  async create(createShowDto: CreateShowDto) {
+    const checkHall = await this.hallRepository.findBy({
+      id: createShowDto.hallId,
+    });
+
+    if (checkHall.length === 0) {
+      throw new ConflictException('해당하는 공연장이 존재하지 않습니다.');
+    }
+
+    const existingShow = await this.showRepository.findBy({
+      showName: createShowDto.showName,
+    });
+
+    if (existingShow.length !== 0) {
+      throw new ConflictException(
+        '이미 해당 공연 이름으로 만들어진 공연이 있습니다!',
+      );
+    }
+
+    const show = await this.showRepository.save({
+      hall: checkHall[0],
+      showName: createShowDto.showName,
+      image: createShowDto.image,
+      showExplain: createShowDto.showExplain,
+      category: createShowDto.category,
+      price: createShowDto.price,
+    });
+    return show;
+  }
+
+  async update(id: number, updateShowDto: UpdateShowDto) {
+    await this.verifyShowById(id);
+    if (updateShowDto.showName) {
+      const existingShow = await this.showRepository.findBy({
+        showName: updateShowDto.showName,
+      });
+      if (existingShow.length !== 0) {
+        throw new ConflictException(
+          '이미 해당하는 이름으로 만들어진 공연이 존재합니다!',
+        );
+      }
+    }
+    await this.showRepository.update({ id }, updateShowDto);
+    return { message: '공연 수정을 성공적으로 완료 하였습니다.' };
+  }
+
+  async delete(id: number) {
+    await this.verifyShowById(id);
+    await this.showRepository.delete({ id: id });
+    return { message: '공연 삭제가 완료 되었습니다.' };
+  }
+
+  async findAll(): Promise<Show[]> {
+    const getShow = await this.showRepository.find({
+      select: ['id', 'showName', 'category', 'price'],
+    });
+    if (getShow.length === 0) {
+      throw new BadRequestException('등록된 공연장이 없습니다.');
+    }
+    return getShow;
+  }
+
+  async findCategory(category: string): Promise<Show[]> {
+    const getShow = await this.showRepository.findBy({
+      category: category,
+    });
+    if (getShow.length === 0) {
+      throw new BadRequestException('등록된 카테고리가 없습니다.');
+    }
+    return getShow;
+  }
+
+  async findOne(id: number) {
+    await this.verifyShowById(id);
+
+    const getShow = await this.showRepository.findBy({ id: id });
+
+    return getShow;
+  }
+
+  async search() {}
+
+  private async verifyShowById(id: number) {
+    const show = await this.showRepository.findOneBy({ id });
+    if (_.isNil(show)) {
+      throw new BadRequestException('존재하지 않는 공연입니다.');
+    }
+    return show;
+  }
 }

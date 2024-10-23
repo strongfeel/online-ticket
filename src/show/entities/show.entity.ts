@@ -35,7 +35,6 @@ export class Show {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // @ManyToOne((type) => Hall, (hall) => hall.shows)
-  // @JoinColumn({ name: 'hall_id' })
-  // hall: Hall;
+  @ManyToOne((type) => Hall, (hall) => hall.shows)
+  hall: Hall;
 }

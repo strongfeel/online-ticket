@@ -11,6 +11,7 @@ import { Point } from './point/entities/point.entity';
 import { HallModule } from './hall/hall.module';
 import { ShowModule } from './show/show.module';
 import { Hall } from './hall/entities/hall.entity';
+import { Show } from './show/entities/show.entity';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -23,7 +24,7 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User, Point, Hall],
+    entities: [User, Point, Hall, Show],
     synchronize: configService.get('DB_SYNC'),
     logging: true,
   }),

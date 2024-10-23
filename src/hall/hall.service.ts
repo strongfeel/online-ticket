@@ -47,9 +47,9 @@ export class HallService {
       }
     }
 
-    const hall = await this.hallRepository.update({ id }, updateHallDto);
+    await this.hallRepository.update({ id }, updateHallDto);
 
-    return { message: '공연장 수정을 성공적으로 완료 하였습니다.', hall };
+    return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
   }
 
   async delete(id: number) {
