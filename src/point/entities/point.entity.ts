@@ -21,7 +21,7 @@ export class Point {
   @Column({ type: 'varchar', nullable: false })
   reason: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.points)

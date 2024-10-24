@@ -54,7 +54,13 @@ export class ShowController {
   }
 
   @Get('/show/:id')
+  // TODO: 스케쥴 데이터를 가져와서 예매 가능한지 여부 파악
   async findOne(@Param('id') id: number) {
     return await this.showService.findOne(id);
+  }
+
+  @Get('/show/search/:showName')
+  async searchShowName(@Param('showName') showName: string) {
+    return await this.showService.searchShowName(showName);
   }
 }

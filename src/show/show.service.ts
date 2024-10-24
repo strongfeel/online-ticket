@@ -1,15 +1,11 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Show } from './entities/show.entity';
+import _ from 'lodash';
+import { Hall } from 'src/hall/entities/hall.entity';
 import { Repository } from 'typeorm';
 import { CreateShowDto } from './dto/create-show.dto';
 import { UpdateShowDto } from './dto/update-show.dto';
-import _ from 'lodash';
-import { Hall } from 'src/hall/entities/hall.entity';
+import { Show } from './entities/show.entity';
 
 @Injectable()
 export class ShowService {
@@ -18,26 +14,26 @@ export class ShowService {
     @InjectRepository(Hall) private hallRepository: Repository<Hall>,
   ) {}
   async create(createShowDto: CreateShowDto) {
-    const checkHall = await this.hallRepository.findBy({
-      id: createShowDto.hallId,
+    const checkHall = await this.hallRepository.findOne({
+      where: { id: createShowDto.hallId },
     });
 
-    if (checkHall.length === 0) {
-      throw new ConflictException('해당하는 공연장이 존재하지 않습니다.');
+    if (!checkHall) {
+      throw new BadRequestException('해당하는 공연장이 존재하지 않습니다.');
     }
 
-    const existingShow = await this.showRepository.findBy({
-      showName: createShowDto.showName,
+    const existingShow = await this.showRepository.findOne({
+      where: { showName: createShowDto.showName },
     });
 
-    if (existingShow.length !== 0) {
-      throw new ConflictException(
+    if (existingShow) {
+      throw new BadRequestException(
         '이미 해당 공연 이름으로 만들어진 공연이 있습니다!',
       );
     }
 
     const show = await this.showRepository.save({
-      hall: checkHall[0],
+      hall: checkHall,
       showName: createShowDto.showName,
       image: createShowDto.image,
       showExplain: createShowDto.showExplain,
@@ -50,11 +46,11 @@ export class ShowService {
   async update(id: number, updateShowDto: UpdateShowDto) {
     await this.verifyShowById(id);
     if (updateShowDto.showName) {
-      const existingShow = await this.showRepository.findBy({
-        showName: updateShowDto.showName,
+      const existingShow = await this.showRepository.findOne({
+        where: { showName: updateShowDto.showName },
       });
-      if (existingShow.length !== 0) {
-        throw new ConflictException(
+      if (existingShow) {
+        throw new BadRequestException(
           '이미 해당하는 이름으로 만들어진 공연이 존재합니다!',
         );
       }
@@ -92,12 +88,25 @@ export class ShowService {
   async findOne(id: number) {
     await this.verifyShowById(id);
 
-    const getShow = await this.showRepository.findBy({ id: id });
+    const getShow = await this.showRepository.findOne({
+      where: { id: id },
+      relations: {
+        hall: true,
+      },
+    });
 
     return getShow;
   }
 
-  async search() {}
+  async searchShowName(showName: string) {
+    const getShow = await this.showRepository.findOne({
+      where: { showName: showName },
+    });
+    if (!getShow) {
+      throw new BadRequestException('해당하는 이름의 공연이 없습니다.');
+    }
+    return getShow;
+  }
 
   private async verifyShowById(id: number) {
     const show = await this.showRepository.findOneBy({ id });

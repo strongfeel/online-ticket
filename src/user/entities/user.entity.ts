@@ -1,4 +1,4 @@
-import { Role } from '../types/userRole.type';
+import { Point } from 'src/point/entities/point.entity';
 import {
   Column,
   CreateDateColumn,
@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Point } from 'src/point/entities/point.entity';
+import { Role } from '../types/userRole.type';
 
 @Index('email', ['email'], { unique: true })
 @Entity({ name: 'users' })
@@ -28,10 +28,10 @@ export class User {
   @Column({ type: 'enum', enum: Role, default: Role.User })
   role: Role;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
   @OneToMany((type) => Point, (point) => point.user)

@@ -1,3 +1,4 @@
+import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Show } from 'src/show/entities/show.entity';
 import {
   Column,
@@ -22,12 +23,15 @@ export class Hall {
   @Column({ type: 'int', nullable: false })
   totalSeat: number;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
   @OneToMany((type) => Show, (show) => show.hall)
   shows: Show[];
+
+  @OneToMany((type) => Schedule, (schedule) => schedule.hall)
+  schedules: Schedule[];
 }

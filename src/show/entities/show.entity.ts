@@ -1,10 +1,11 @@
 import { Hall } from 'src/hall/entities/hall.entity';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -29,12 +30,15 @@ export class Show {
   @Column({ type: 'int', nullable: false, unsigned: true })
   price: number;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne((type) => Hall, (hall) => hall.shows)
+  @ManyToOne(() => Hall, (hall) => hall.shows)
   hall: Hall;
+
+  @OneToMany(() => Schedule, (schedule) => schedule.show)
+  schedules: Schedule[];
 }
