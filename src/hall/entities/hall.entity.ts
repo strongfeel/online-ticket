@@ -23,9 +23,6 @@ export class Hall {
   @Column({ type: 'int', nullable: false })
   totalSeat: number;
 
-  @Column({ type: 'int', nullable: false })
-  remainingSeat: number;
-
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 

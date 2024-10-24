@@ -39,6 +39,7 @@ export class ShowService {
       showExplain: createShowDto.showExplain,
       category: createShowDto.category,
       price: createShowDto.price,
+      remainingSeat: checkHall.totalSeat,
     });
     return show;
   }
@@ -85,6 +86,7 @@ export class ShowService {
     return getShow;
   }
 
+  //TODO: 공연 일정 확인 및 남은 좌석 확인 후 메세지로 리턴
   async findOne(id: number) {
     await this.verifyShowById(id);
 
@@ -92,14 +94,10 @@ export class ShowService {
       where: { id: id },
       relations: {
         hall: true,
-        //schedules: true,
       },
     });
 
-    // const checkDate = await this.
-
-    let today = new Date();
-    // if (getShow.schedules[0].scheduleDate)
+    const today = new Date();
     return getShow;
   }
 

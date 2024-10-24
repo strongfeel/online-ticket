@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
-import { Repository } from 'typeorm';
+import { Show } from 'src/show/entities/show.entity';
+import { DataSource, Repository } from 'typeorm';
 import { CreateHallDto } from './dto/create-hall.dto';
 import { UpdateHallDto } from './dto/update-hall.dto';
 import { Hall } from './entities/hall.entity';
@@ -14,6 +15,7 @@ import { Hall } from './entities/hall.entity';
 export class HallService {
   constructor(
     @InjectRepository(Hall) private hallRepository: Repository<Hall>,
+    private dataSource: DataSource,
   ) {}
 
   async create(createHallDto: CreateHallDto) {
@@ -52,16 +54,38 @@ export class HallService {
       }
     }
 
-    if (updateHallDto.totalSeat) {
-      await this.hallRepository.update(id, {
-        totalSeat: updateHallDto.totalSeat,
-        remainingSeat: updateHallDto.totalSeat,
-      });
-    } else {
-      await this.hallRepository.update({ id }, updateHallDto);
-    }
+    const hall = await this.hallRepository.findOne({ where: { id } });
 
-    return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction('READ COMMITTED');
+
+    try {
+      if (updateHallDto.totalSeat) {
+        await queryRunner.manager.update(
+          Hall,
+          { id },
+          { totalSeat: updateHallDto.totalSeat },
+        );
+
+        await queryRunner.manager.update(
+          Show,
+          { hall: hall },
+          { remainingSeat: updateHallDto.totalSeat },
+        );
+      }
+
+      await queryRunner.manager.update(Hall, { id }, updateHallDto);
+
+      await queryRunner.commitTransaction();
+
+      return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw new Error(err);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async delete(id: number) {
@@ -74,7 +98,7 @@ export class HallService {
 
   async findAll(): Promise<Hall[]> {
     const getHall = await this.hallRepository.find({
-      select: ['id', 'hallName', 'location', 'totalSeat', 'remainingSeat'],
+      select: ['id', 'hallName', 'location', 'totalSeat'],
     });
 
     if (getHall.length === 0) {

@@ -30,6 +30,9 @@ export class Show {
   @Column({ type: 'int', nullable: false, unsigned: true })
   price: number;
 
+  @Column({ type: 'int', nullable: false })
+  remainingSeat: number;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
