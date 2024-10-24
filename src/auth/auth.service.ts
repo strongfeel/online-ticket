@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { compare, hash } from 'bcrypt';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import {
   ConflictException,
@@ -20,6 +20,7 @@ export class AuthService {
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Point) private pointRepository: Repository<Point>,
     private readonly jwtService: JwtService,
+    private dataSource: DataSource,
   ) {}
 
   async register(
@@ -44,29 +45,36 @@ export class AuthService {
       );
     }
 
-    const hashedPassword = await hash(password, 10);
-    const newUser = await this.userRepository.save({
-      email,
-      role,
-      password: hashedPassword,
-      nickname,
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction('READ COMMITTED');
 
-    await this.pointRepository.save({
-      user: newUser,
-      reason: '회원가입 증정 포인트',
-    });
+    try {
+      const hashedPassword = await hash(password, 10);
+      const newUser = await queryRunner.manager.save(User, {
+        email,
+        role,
+        password: hashedPassword,
+        nickname,
+      });
 
-    return await this.userRepository.findOne({
-      where: { id: newUser.id },
-      select: {
-        id: true,
-        email: true,
-        nickname: true,
-        createdAt: true,
-        role: true,
-      },
-    });
+      await queryRunner.manager.save(Point, {
+        user: newUser,
+        reason: '회원가입 증정 포인트',
+      });
+
+      await queryRunner.commitTransaction();
+
+      return await this.userRepository.findOne({
+        where: { id: newUser.id },
+        select: ['id', 'email', 'nickname', 'createdAt', 'role'],
+      });
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async login(email: string, password: string) {
