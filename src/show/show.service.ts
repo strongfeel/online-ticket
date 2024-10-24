@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
 import { Hall } from 'src/hall/entities/hall.entity';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Repository } from 'typeorm';
 import { CreateShowDto } from './dto/create-show.dto';
 import { UpdateShowDto } from './dto/update-show.dto';
@@ -12,6 +13,8 @@ export class ShowService {
   constructor(
     @InjectRepository(Show) private showRepository: Repository<Show>,
     @InjectRepository(Hall) private hallRepository: Repository<Hall>,
+    @InjectRepository(Schedule)
+    private scheduleRepository: Repository<Schedule>,
   ) {}
   async create(createShowDto: CreateShowDto) {
     const checkHall = await this.hallRepository.findOne({
@@ -97,8 +100,24 @@ export class ShowService {
       },
     });
 
+    const getScheduleDate = await this.scheduleRepository.find({
+      where: {
+        show: { id: getShow.id },
+        hall: { id: getShow.hall.id },
+      },
+    });
+
     const today = new Date();
-    return getShow;
+
+    if (
+      getShow.remainingSeat > 0 &&
+      getScheduleDate.length > 0 &&
+      getScheduleDate.some((schedule) => schedule.scheduleDate > today)
+    ) {
+      return { getShow, message: '해당하는 공연은 예매가 가능 합니다.' };
+    }
+
+    return { getShow, message: '해당하는 공연은 예매가 불가능 합니다.' };
   }
 
   async searchShowName(showName: string) {
