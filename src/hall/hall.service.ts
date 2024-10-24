@@ -27,7 +27,12 @@ export class HallService {
       );
     }
 
-    const hall = await this.hallRepository.save(createHallDto);
+    const hall = await this.hallRepository.save({
+      hallName: createHallDto.hallName,
+      location: createHallDto.location,
+      totalSeat: createHallDto.totalSeat,
+      remainingSeat: createHallDto.totalSeat,
+    });
 
     return hall;
   }
@@ -36,18 +41,25 @@ export class HallService {
     await this.verifyHallById(id);
 
     if (updateHallDto.hallName) {
-      const existingHall = await this.hallRepository.findBy({
-        hallName: updateHallDto.hallName,
+      const existingHall = await this.hallRepository.findOne({
+        where: { hallName: updateHallDto.hallName },
       });
 
-      if (existingHall.length !== 0) {
+      if (existingHall) {
         throw new ConflictException(
           '이미 해당하는 이름으로 만들어진 공연장이 있습니다!',
         );
       }
     }
 
-    await this.hallRepository.update({ id }, updateHallDto);
+    if (updateHallDto.totalSeat) {
+      await this.hallRepository.update(id, {
+        totalSeat: updateHallDto.totalSeat,
+        remainingSeat: updateHallDto.totalSeat,
+      });
+    } else {
+      await this.hallRepository.update({ id }, updateHallDto);
+    }
 
     return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
   }
@@ -62,7 +74,7 @@ export class HallService {
 
   async findAll(): Promise<Hall[]> {
     const getHall = await this.hallRepository.find({
-      select: ['id', 'hallName', 'location', 'totalSeat'],
+      select: ['id', 'hallName', 'location', 'totalSeat', 'remainingSeat'],
     });
 
     if (getHall.length === 0) {

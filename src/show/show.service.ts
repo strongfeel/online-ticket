@@ -92,15 +92,24 @@ export class ShowService {
       where: { id: id },
       relations: {
         hall: true,
+        //schedules: true,
       },
     });
 
+    // const checkDate = await this.
+
+    let today = new Date();
+    // if (getShow.schedules[0].scheduleDate)
     return getShow;
   }
 
   async searchShowName(showName: string) {
     const getShow = await this.showRepository.findOne({
       where: { showName: showName },
+      relations: {
+        hall: true,
+        schedules: true,
+      },
     });
     if (!getShow) {
       throw new BadRequestException('해당하는 이름의 공연이 없습니다.');
