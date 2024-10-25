@@ -7,14 +7,10 @@ import {
   Put,
   Query,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Role } from 'src/user/types/userRole.type';
-import { TransactionManager } from 'src/utils/transaction.decorator';
-import { TransactionInterceptor } from 'src/utils/transaction.interceptor';
-import { EntityManager } from 'typeorm';
 import { CreateShowDto } from './dto/create-show.dto';
 import { UpdateShowDto } from './dto/update-show.dto';
 import { ShowService } from './show.service';
@@ -26,12 +22,8 @@ export class ShowController {
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @Post('/admin/shows')
-  @UseInterceptors(TransactionInterceptor)
-  async createShow(
-    @Body() createShowDto: CreateShowDto,
-    @TransactionManager() transactionManager: EntityManager,
-  ) {
-    return await this.showService.create(createShowDto, transactionManager);
+  async createShow(@Body() createShowDto: CreateShowDto) {
+    return await this.showService.create(createShowDto);
   }
 
   @UseGuards(RolesGuard)

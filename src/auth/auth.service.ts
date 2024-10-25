@@ -1,6 +1,6 @@
-import { compare, hash } from 'bcrypt';
 import _ from 'lodash';
-import { EntityManager, Repository } from 'typeorm';
+import { compare, hash } from 'bcrypt';
+import { DataSource, Repository } from 'typeorm';
 
 import {
   ConflictException,
@@ -10,15 +10,17 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Role } from 'src/user/types/userRole.type';
-import { Point } from '../point/entities/point.entity';
 import { User } from '../user/entities/user.entity';
+import { Point } from '../point/entities/point.entity';
+import { Role } from 'src/user/types/userRole.type';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Point) private pointRepository: Repository<Point>,
     private readonly jwtService: JwtService,
+    private dataSource: DataSource,
   ) {}
 
   async register(
@@ -26,7 +28,6 @@ export class AuthService {
     password: string,
     nickname: string,
     role: Role,
-    transactionManager: EntityManager,
   ) {
     const existingUser = await this.findByEmail(email);
     if (existingUser) {
@@ -43,23 +44,37 @@ export class AuthService {
         '이미 해당 닉네임으로 가입된 사용자가 있습니다!',
       );
     }
-    const hashedPassword = await hash(password, 10);
-    const newUser = await transactionManager.save(User, {
-      email,
-      role,
-      password: hashedPassword,
-      nickname,
-    });
 
-    await transactionManager.save(Point, {
-      user: { id: newUser.id },
-      reason: '회원가입 증정 포인트',
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction('READ COMMITTED');
 
-    return await this.userRepository.findOne({
-      where: { id: newUser.id },
-      select: ['id', 'email', 'nickname', 'createdAt', 'role'],
-    });
+    try {
+      const hashedPassword = await hash(password, 10);
+      const newUser = await queryRunner.manager.save(User, {
+        email,
+        role,
+        password: hashedPassword,
+        nickname,
+      });
+
+      await queryRunner.manager.save(Point, {
+        user: newUser,
+        reason: '회원가입 증정 포인트',
+      });
+
+      await queryRunner.commitTransaction();
+
+      return await this.userRepository.findOne({
+        where: { id: newUser.id },
+        select: ['id', 'email', 'nickname', 'createdAt', 'role'],
+      });
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async login(email: string, password: string) {
