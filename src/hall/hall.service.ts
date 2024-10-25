@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
 import { Show } from 'src/show/entities/show.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CreateHallDto } from './dto/create-hall.dto';
 import { UpdateHallDto } from './dto/update-hall.dto';
 import { Hall } from './entities/hall.entity';
@@ -39,7 +39,11 @@ export class HallService {
     return hall;
   }
 
-  async update(id: number, updateHallDto: UpdateHallDto) {
+  async update(
+    id: number,
+    updateHallDto: UpdateHallDto,
+    transactionManager: EntityManager,
+  ) {
     await this.verifyHallById(id);
 
     if (updateHallDto.hallName) {
@@ -56,36 +60,23 @@ export class HallService {
 
     const hall = await this.hallRepository.findOne({ where: { id } });
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction('READ COMMITTED');
+    if (updateHallDto.totalSeat) {
+      await transactionManager.update(
+        Hall,
+        { id },
+        { totalSeat: updateHallDto.totalSeat },
+      );
 
-    try {
-      if (updateHallDto.totalSeat) {
-        await queryRunner.manager.update(
-          Hall,
-          { id },
-          { totalSeat: updateHallDto.totalSeat },
-        );
-
-        await queryRunner.manager.update(
-          Show,
-          { hall: hall },
-          { remainingSeat: updateHallDto.totalSeat },
-        );
-      }
-
-      await queryRunner.manager.update(Hall, { id }, updateHallDto);
-
-      await queryRunner.commitTransaction();
-
-      return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw new Error(err);
-    } finally {
-      await queryRunner.release();
+      await transactionManager.update(
+        Show,
+        { hall: hall },
+        { remainingSeat: updateHallDto.totalSeat },
+      );
     }
+
+    await transactionManager.update(Hall, { id }, updateHallDto);
+
+    return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
   }
 
   async delete(id: number) {
