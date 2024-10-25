@@ -71,7 +71,7 @@ export class ShowService {
 
   async findAll(): Promise<Show[]> {
     const getShow = await this.showRepository.find({
-      select: ['id', 'showName', 'category', 'price'],
+      select: ['id', 'showName', 'category', 'price', 'remainingSeat'],
     });
     if (getShow.length === 0) {
       throw new BadRequestException('등록된 공연장이 없습니다.');
@@ -89,7 +89,6 @@ export class ShowService {
     return getShow;
   }
 
-  //TODO: 공연 일정 확인 및 남은 좌석 확인 후 메세지로 리턴
   async findOne(id: number) {
     await this.verifyShowById(id);
 

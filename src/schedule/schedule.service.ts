@@ -23,30 +23,16 @@ export class ScheduleService {
   ) {}
 
   async create(createScheduleDto: CreateScheduleDto) {
-    const hall = await this.hallRepository.findOne({
-      where: { id: createScheduleDto.hallId },
-    });
-
-    const show = await this.showRepository.findOne({
-      where: { id: createScheduleDto.showId },
-      relations: {
-        hall: true,
-      },
-    });
-
-    if (!show || !hall) {
-      throw new NotFoundException('공연 또는 공연장을 찾을 수 없습니다.');
-    }
-
-    if (show.hall.id !== hall.id) {
-      throw new BadRequestException('공연장에 해당하는 공연이 없습니다.');
-    }
+    const checkHallAndShow = await this.checkHallAndShow(
+      createScheduleDto.hallId,
+      createScheduleDto.showId,
+    );
 
     const schedules = createScheduleDto.scheduleDate.map((date) => {
       const schedule = new Schedule();
       schedule.scheduleDate = date;
-      schedule.show = show;
-      schedule.hall = hall;
+      schedule.show = checkHallAndShow.show;
+      schedule.hall = checkHallAndShow.hall;
       return schedule;
     });
 
@@ -67,11 +53,49 @@ export class ScheduleService {
     return { message: '공연 스케쥴 삭제가 완료 되었습니다.' };
   }
 
+  async findSchedule(hallId: number, showId: number) {
+    const checkHallAndShow = await this.checkHallAndShow(hallId, showId);
+
+    const schedule = await this.scheduleRepository.findOne({
+      where: {
+        show: { id: checkHallAndShow.show.id },
+        hall: { id: checkHallAndShow.hall.id },
+      },
+    });
+
+    return schedule;
+  }
+
   private async verifyScheduleById(id: number) {
     const schedule = await this.scheduleRepository.findOneBy({ id });
     if (_.isNil(schedule)) {
       throw new BadRequestException('존재하지 않는 스케쥴 입니다.');
     }
     return schedule;
+  }
+
+  private async checkHallAndShow(hallId: number, showId: number) {
+    const hall = await this.hallRepository.findOne({
+      where: { id: hallId },
+    });
+
+    const show = await this.showRepository.findOne({
+      where: { id: showId },
+      relations: {
+        hall: true,
+      },
+    });
+
+    if (!show || !hall) {
+      throw new NotFoundException('공연 또는 공연장을 찾을 수 없습니다.');
+    }
+
+    if (show.hall.id !== hall.id) {
+      throw new BadRequestException(
+        '해당하는 공연장에 해당하는 공연이 없습니다.',
+      );
+    }
+
+    return { show, hall };
   }
 }

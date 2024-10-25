@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Put,
@@ -40,5 +41,13 @@ export class ScheduleController {
   @Delete('/admin/schedule/:id')
   async deleteShow(@Param('id') id: number) {
     return await this.scheduleService.delete(id);
+  }
+
+  @Get('/schedule')
+  async findSchedule(
+    @Body('hallId') hallId: number,
+    @Body('showId') showId: number,
+  ) {
+    return await this.scheduleService.findSchedule(hallId, showId);
   }
 }
