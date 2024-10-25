@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
 import { Hall } from 'src/hall/entities/hall.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { DataSource, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { CreateShowDto } from './dto/create-show.dto';
 import { UpdateShowDto } from './dto/update-show.dto';
 import { Show } from './entities/show.entity';
@@ -15,8 +15,8 @@ export class ShowService {
     @InjectRepository(Hall) private hallRepository: Repository<Hall>,
     @InjectRepository(Schedule)
     private scheduleRepository: Repository<Schedule>,
-    private dataSource: DataSource,
   ) {}
+
   async create(createShowDto: CreateShowDto) {
     const checkHall = await this.hallRepository.findOne({
       where: { id: createShowDto.hallId },
@@ -36,80 +36,20 @@ export class ShowService {
       );
     }
 
-    const checkScheduleInHall = await this.scheduleRepository.find({
-      where: { hall: { id: createShowDto.hallId } },
-      select: ['scheduleDate'],
+    const show = await this.showRepository.save({
+      hall: { id: checkHall.id },
+      showName: createShowDto.showName,
+      image: createShowDto.image,
+      showExplain: createShowDto.showExplain,
+      category: createShowDto.category,
+      price: createShowDto.price,
+      remainingSeat: checkHall.totalSeat,
     });
 
-    const isDateConflict = createShowDto.scheduleDate.some((newDate) =>
-      checkScheduleInHall.some((schedule) => {
-        const scheduleDate = new Date(schedule.scheduleDate);
-        const compareDate = new Date(newDate);
-
-        return (
-          scheduleDate.getFullYear() === compareDate.getFullYear() &&
-          scheduleDate.getMonth() === compareDate.getMonth() &&
-          scheduleDate.getDate() === compareDate.getDate()
-        );
-      }),
-    );
-
-    if (isDateConflict) {
-      throw new BadRequestException(
-        '해당하는 날짜에 이미 다른 공연이 공연장을 사용합니다.',
-      );
-    }
-
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction('READ COMMITTED');
-
-    try {
-      const show = await queryRunner.manager.save(Show, {
-        hall: checkHall,
-        showName: createShowDto.showName,
-        image: createShowDto.image,
-        showExplain: createShowDto.showExplain,
-        category: createShowDto.category,
-        price: createShowDto.price,
-        remainingSeat: checkHall.totalSeat,
-      });
-
-      const schedules = createShowDto.scheduleDate.map((date) => {
-        const schedule = this.scheduleRepository.create({
-          scheduleDate: date,
-          show: show,
-          hall: checkHall,
-        });
-
-        return schedule;
-      });
-
-      await queryRunner.manager.save(Schedule, schedules);
-
-      await queryRunner.commitTransaction();
-
-      const scheduleData = await this.scheduleRepository.find({
-        where: {
-          show: { id: show.id },
-          hall: { id: show.hall.id },
-        },
-        select: {
-          scheduleDate: true,
-        },
-      });
-
-      return {
-        message: '공연을 생성 하였습니다.',
-        show,
-        schedules: scheduleData,
-      };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
-    }
+    return {
+      message: '공연을 생성 하였습니다.',
+      show,
+    };
   }
 
   async update(id: number, updateShowDto: UpdateShowDto) {

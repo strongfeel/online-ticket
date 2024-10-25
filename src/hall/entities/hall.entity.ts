@@ -1,4 +1,5 @@
 import { Schedule } from 'src/schedule/entities/schedule.entity';
+import { Seat } from 'src/seat/entities/seat.entity';
 import { Show } from 'src/show/entities/show.entity';
 import {
   Column,
@@ -34,4 +35,7 @@ export class Hall {
 
   @OneToMany((type) => Schedule, (schedule) => schedule.hall)
   schedules: Schedule[];
+
+  @OneToMany((type) => Seat, (seat) => seat.hall)
+  seats: Seat[];
 }

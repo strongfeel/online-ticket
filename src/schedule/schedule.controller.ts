@@ -23,14 +23,14 @@ export class ScheduleController {
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @Post('/admin/schedules')
-  async createShow(@Body() createScheduleDto: CreateScheduleDto) {
+  async createSchedule(@Body() createScheduleDto: CreateScheduleDto) {
     return await this.scheduleService.create(createScheduleDto);
   }
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @Put('/admin/schedules')
-  async updateShow(
+  async updateSchedule(
     @Query('id') id: number,
     @Body() updateScheduleDto: UpdateScheduleDto,
   ) {
@@ -40,7 +40,7 @@ export class ScheduleController {
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @Delete('/admin/schedules')
-  async deleteShow(@Query('id') id: number) {
+  async deleteSchedule(@Query('id') id: number) {
     return await this.scheduleService.delete(id);
   }
 

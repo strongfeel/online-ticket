@@ -20,4 +20,8 @@ export class UpdateShowDto {
   @IsNumber()
   @IsOptional()
   price?: number;
+
+  @IsNumber()
+  @IsOptional()
+  hallId?: number;
 }

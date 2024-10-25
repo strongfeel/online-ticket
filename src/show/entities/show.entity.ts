@@ -1,5 +1,6 @@
 import { Hall } from 'src/hall/entities/hall.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
+import { Seat } from 'src/seat/entities/seat.entity';
 import {
   Column,
   CreateDateColumn,
@@ -44,4 +45,7 @@ export class Show {
 
   @OneToMany(() => Schedule, (schedule) => schedule.show)
   schedules: Schedule[];
+
+  @OneToMany(() => Seat, (seat) => seat.show)
+  seats: Seat[];
 }

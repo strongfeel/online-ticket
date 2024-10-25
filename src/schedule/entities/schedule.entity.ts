@@ -1,6 +1,13 @@
 import { Hall } from 'src/hall/entities/hall.entity';
+import { Seat } from 'src/seat/entities/seat.entity';
 import { Show } from 'src/show/entities/show.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'schedules' })
 export class Schedule {
@@ -15,4 +22,7 @@ export class Schedule {
 
   @ManyToOne(() => Hall, (hall) => hall.schedules)
   hall: Hall;
+
+  @OneToMany(() => Seat, (seat) => seat.show)
+  seats: Seat[];
 }

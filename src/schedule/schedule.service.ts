@@ -22,6 +22,8 @@ export class ScheduleService {
     @InjectRepository(Hall) private hallRepository: Repository<Hall>,
   ) {}
 
+  //TODO: 해당하는 공연장에 같은 날짜의 스케쥴이 존재한다면 오류 발생시키기
+  //TODO: 스케쥴 만들면 바로 좌석까지 같이 만들기 트랜잭션
   async create(createScheduleDto: CreateScheduleDto) {
     const hall = await this.hallRepository.findOne({
       where: { id: createScheduleDto.hallId },
