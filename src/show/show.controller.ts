@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ShowService } from './show.service';
@@ -21,16 +22,16 @@ export class ShowController {
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Post('/admin/show')
+  @Post('/admin/shows')
   async createShow(@Body() createShowDto: CreateShowDto) {
     return await this.showService.create(createShowDto);
   }
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Put('/admin/show/:id')
+  @Put('/admin/shows')
   async updateShow(
-    @Param('id') id: number,
+    @Query('id') id: number,
     @Body() updateShowDto: UpdateShowDto,
   ) {
     return await this.showService.update(id, updateShowDto);
@@ -38,28 +39,28 @@ export class ShowController {
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Delete('/admin/show/:id')
-  async deleteShow(@Param('id') id: number) {
+  @Delete('/admin/shows')
+  async deleteShow(@Query('id') id: number) {
     return await this.showService.delete(id);
   }
 
-  @Get('/show/all')
+  @Get('/shows/all')
   async findAll() {
     return await this.showService.findAll();
   }
 
-  @Get('/show/category/:category')
-  async findCategory(@Param('category') category: string) {
+  @Get('/shows/category')
+  async findCategory(@Query('category') category: string) {
     return await this.showService.findCategory(category);
   }
 
-  @Get('/show/:id')
-  async findOne(@Param('id') id: number) {
+  @Get('/shows')
+  async findOne(@Query('id') id: number) {
     return await this.showService.findOne(id);
   }
 
-  @Get('/show/search/:showName')
-  async searchShowName(@Param('showName') showName: string) {
+  @Get('/shows/search')
+  async searchShowName(@Query('showName') showName: string) {
     return await this.showService.searchShowName(showName);
   }
 }

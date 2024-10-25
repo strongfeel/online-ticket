@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
@@ -21,16 +22,16 @@ export class ScheduleController {
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Post('/admin/schedule')
+  @Post('/admin/schedules')
   async createShow(@Body() createScheduleDto: CreateScheduleDto) {
     return await this.scheduleService.create(createScheduleDto);
   }
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Put('/admin/schedule/:id')
+  @Put('/admin/schedules')
   async updateShow(
-    @Param('id') id: number,
+    @Query('id') id: number,
     @Body() updateScheduleDto: UpdateScheduleDto,
   ) {
     return await this.scheduleService.update(id, updateScheduleDto);
@@ -38,15 +39,15 @@ export class ScheduleController {
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Delete('/admin/schedule/:id')
-  async deleteShow(@Param('id') id: number) {
+  @Delete('/admin/schedules')
+  async deleteShow(@Query('id') id: number) {
     return await this.scheduleService.delete(id);
   }
 
-  @Get('/schedule')
+  @Get('/schedules')
   async findSchedule(
-    @Body('hallId') hallId: number,
-    @Body('showId') showId: number,
+    @Query('hallId') hallId: number,
+    @Query('showId') showId: number,
   ) {
     return await this.scheduleService.findSchedule(hallId, showId);
   }

@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { HallService } from './hall.service';
@@ -21,16 +22,16 @@ export class HallController {
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Post('/admin/hall')
+  @Post('/admin/halls')
   async createHall(@Body() createHallDto: CreateHallDto) {
     return await this.hallService.create(createHallDto);
   }
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Put('/admin/hall/:id')
+  @Put('/admin/halls')
   async updateHall(
-    @Param('id') id: number,
+    @Query('id') id: number,
     @Body() updateHallDto: UpdateHallDto,
   ) {
     return await this.hallService.update(id, updateHallDto);
@@ -38,12 +39,12 @@ export class HallController {
 
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
-  @Delete('/admin/hall/:id')
-  async deleteHall(@Param('id') id: number) {
+  @Delete('/admin/halls')
+  async deleteHall(@Query('id') id: number) {
     return await this.hallService.delete(id);
   }
 
-  @Get('/hall')
+  @Get('/halls')
   async findAll() {
     return await this.hallService.findAll();
   }

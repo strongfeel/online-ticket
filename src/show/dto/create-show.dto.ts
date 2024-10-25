@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 
 export class CreateShowDto {
   @IsNumber()
@@ -24,4 +31,10 @@ export class CreateShowDto {
   @IsNumber()
   @IsNotEmpty({ message: '공연 가격을 입력해 주세요.' })
   price: number;
+
+  @IsArray()
+  @Type(() => Date)
+  @IsDate({ each: true })
+  @IsNotEmpty({ message: '공연 스케쥴을 입력해 주세요.' })
+  scheduleDate: Date[];
 }
