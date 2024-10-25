@@ -17,6 +17,7 @@ export class ShowService {
     private scheduleRepository: Repository<Schedule>,
     private dataSource: DataSource,
   ) {}
+  //TODO: 좌석 생성도 추가 해야됨
   async create(createShowDto: CreateShowDto) {
     const checkHall = await this.hallRepository.findOne({
       where: { id: createShowDto.hallId },

@@ -22,41 +22,6 @@ export class ScheduleService {
     @InjectRepository(Hall) private hallRepository: Repository<Hall>,
   ) {}
 
-  async create(createScheduleDto: CreateScheduleDto) {
-    const hall = await this.hallRepository.findOne({
-      where: { id: createScheduleDto.hallId },
-    });
-
-    const show = await this.showRepository.findOne({
-      where: { id: createScheduleDto.showId },
-      relations: {
-        hall: true,
-      },
-    });
-
-    if (!show || !hall) {
-      throw new NotFoundException('공연 또는 공연장을 찾을 수 없습니다.');
-    }
-
-    if (show.hall.id !== hall.id) {
-      throw new BadRequestException(
-        '해당하는 공연장에 해당하는 공연이 없습니다.',
-      );
-    }
-
-    const schedules = createScheduleDto.scheduleDate.map((date) => {
-      const schedule = new Schedule();
-      schedule.scheduleDate = date;
-      schedule.show = show;
-      schedule.hall = hall;
-      return schedule;
-    });
-
-    await this.scheduleRepository.save(schedules);
-
-    return { message: '스케쥴을 생성 하였습니다.' };
-  }
-
   async update(id: number, updateScheduleDto: UpdateScheduleDto) {
     await this.verifyScheduleById(id);
     await this.scheduleRepository.update({ id: id }, updateScheduleDto);
