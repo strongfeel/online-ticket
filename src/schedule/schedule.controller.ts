@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
   Post,
   Put,
   Query,
@@ -13,8 +12,8 @@ import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Role } from 'src/user/types/userRole.type';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
-import { ScheduleService } from './schedule.service';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { ScheduleService } from './schedule.service';
 
 @Controller('api')
 export class ScheduleController {

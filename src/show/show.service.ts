@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
 import { Hall } from 'src/hall/entities/hall.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
-import { EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateShowDto } from './dto/create-show.dto';
 import { UpdateShowDto } from './dto/update-show.dto';
 import { Show } from './entities/show.entity';
