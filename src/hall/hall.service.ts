@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import _ from 'lodash';
 import { Show } from 'src/show/entities/show.entity';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateHallDto } from './dto/create-hall.dto';
 import { UpdateHallDto } from './dto/update-hall.dto';
 import { Hall } from './entities/hall.entity';
@@ -56,23 +56,34 @@ export class HallService {
 
     const hall = await this.hallRepository.findOne({ where: { id } });
 
-    if (updateHallDto.totalSeat) {
-      await transactionManager.update(
-        Hall,
-        { id },
-        { totalSeat: updateHallDto.totalSeat },
-      );
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction('READ COMMITTED');
 
-      await transactionManager.update(
-        Show,
-        { hall: hall },
-        { remainingSeat: updateHallDto.totalSeat },
-      );
+    try {
+      if (updateHallDto.totalSeat) {
+        await queryRunner.manager.update(
+          Hall,
+          { id },
+          { totalSeat: updateHallDto.totalSeat },
+        );
+
+        await queryRunner.manager.update(
+          Show,
+          { hall: hall },
+          { remainingSeat: updateHallDto.totalSeat },
+        );
+      }
+
+      await queryRunner.manager.update(Hall, { id }, updateHallDto);
+
+      return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-
-    await transactionManager.update(Hall, { id }, updateHallDto);
-
-    return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
   }
 
   async delete(id: number) {
