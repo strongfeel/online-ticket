@@ -7,6 +7,7 @@ import {
   Put,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -14,6 +15,9 @@ import { Role } from 'src/user/types/userRole.type';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ScheduleService } from './schedule.service';
+import { TransactionInterceptor } from 'src/utils/transaction.interceptor';
+import { QueryRunnerParam, Transaction } from 'src/utils/transaction.decorator';
+import { QueryRunner } from 'typeorm';
 
 @Controller('api')
 export class ScheduleController {
@@ -22,8 +26,13 @@ export class ScheduleController {
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @Post('/admin/schedules')
-  async createSchedule(@Body() createScheduleDto: CreateScheduleDto) {
-    return await this.scheduleService.create(createScheduleDto);
+  @UseInterceptors(TransactionInterceptor)
+  @Transaction('READ COMMITTED')
+  async createSchedule(
+    @Body() createScheduleDto: CreateScheduleDto,
+    @QueryRunnerParam() queryRunner: QueryRunner,
+  ) {
+    return await this.scheduleService.create(createScheduleDto, queryRunner);
   }
 
   @UseGuards(RolesGuard)
