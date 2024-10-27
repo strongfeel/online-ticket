@@ -58,6 +58,7 @@ export class ShowController {
     return await this.showService.findOne(id);
   }
 
+  //TODO: 이름이나 카테고리 합칠 수 있을것 같음
   @Get('/shows/showName')
   async findShowName(@Query('showName') showName: string) {
     return await this.showService.findShowName(showName);

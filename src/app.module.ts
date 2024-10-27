@@ -5,16 +5,18 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { User } from './user/entities/user.entity';
-import { Point } from './point/entities/point.entity';
-import { HallModule } from './hall/hall.module';
-import { ShowModule } from './show/show.module';
 import { Hall } from './hall/entities/hall.entity';
-import { Show } from './show/entities/show.entity';
-import { ScheduleModule } from './schedule/schedule.module';
+import { HallModule } from './hall/hall.module';
+import { Payment } from './payment/entities/payment.entity';
+import { PaymentModule } from './payment/payment.module';
+import { Point } from './point/entities/point.entity';
 import { Schedule } from './schedule/entities/schedule.entity';
+import { ScheduleModule } from './schedule/schedule.module';
 import { Seat } from './seat/entities/seat.entity';
+import { Show } from './show/entities/show.entity';
+import { ShowModule } from './show/show.module';
+import { User } from './user/entities/user.entity';
+import { UserModule } from './user/user.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -27,7 +29,7 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User, Point, Hall, Show, Schedule, Seat],
+    entities: [User, Point, Hall, Show, Schedule, Seat, Payment],
     synchronize: configService.get('DB_SYNC'),
     logging: true,
   }),
@@ -54,6 +56,7 @@ const typeOrmModuleOptions = {
     HallModule,
     ShowModule,
     ScheduleModule,
+    PaymentModule,
   ],
   controllers: [],
   providers: [],

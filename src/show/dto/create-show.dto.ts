@@ -1,11 +1,4 @@
-import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsDate,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateShowDto {
   @IsNumber()
