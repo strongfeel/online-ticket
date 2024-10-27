@@ -39,11 +39,7 @@ export class HallService {
     return hall;
   }
 
-  async update(
-    id: number,
-    updateHallDto: UpdateHallDto,
-    transactionManager: EntityManager,
-  ) {
+  async update(id: number, updateHallDto: UpdateHallDto) {
     await this.verifyHallById(id);
 
     if (updateHallDto.hallName) {

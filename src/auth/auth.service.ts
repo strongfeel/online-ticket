@@ -18,7 +18,6 @@ import { Role } from 'src/user/types/userRole.type';
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRepository(Point) private pointRepository: Repository<Point>,
     private readonly jwtService: JwtService,
     private dataSource: DataSource,
   ) {}
