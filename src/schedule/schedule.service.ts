@@ -21,6 +21,7 @@ export class ScheduleService {
     @InjectRepository(Hall) private hallRepository: Repository<Hall>,
   ) {}
 
+  // TODO: 스케쥴 생성 시 좌석도 같이 생성
   async create(createScheduleDto: CreateScheduleDto) {
     const hall = await this.hallRepository.findOne({
       where: { id: createScheduleDto.hallId },

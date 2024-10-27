@@ -58,8 +58,8 @@ export class ShowController {
     return await this.showService.findOne(id);
   }
 
-  @Get('/shows/search')
-  async searchShowName(@Query('showName') showName: string) {
-    return await this.showService.searchShowName(showName);
+  @Get('/shows/showName')
+  async findShowName(@Query('showName') showName: string) {
+    return await this.showService.findShowName(showName);
   }
 }

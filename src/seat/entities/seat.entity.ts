@@ -14,12 +14,14 @@ export class Seat {
   @Column({ type: 'boolean', default: true })
   seatStatus: boolean;
 
-  @ManyToOne(() => Hall, (hall) => hall.seats)
+  @ManyToOne(() => Hall, (hall) => hall.seats, { onDelete: 'CASCADE' })
   hall: Hall;
 
-  @ManyToOne(() => Show, (show) => show.seats)
+  @ManyToOne(() => Show, (show) => show.seats, { onDelete: 'CASCADE' })
   show: Show;
 
-  @ManyToOne(() => Schedule, (schedule) => schedule.seats)
+  @ManyToOne(() => Schedule, (schedule) => schedule.seats, {
+    onDelete: 'CASCADE',
+  })
   schedule: Schedule;
 }

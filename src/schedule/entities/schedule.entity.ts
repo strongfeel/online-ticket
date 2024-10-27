@@ -17,10 +17,10 @@ export class Schedule {
   @Column({ type: 'timestamp', nullable: false })
   scheduleDate: Date;
 
-  @ManyToOne(() => Show, (show) => show.schedules)
+  @ManyToOne(() => Show, (show) => show.schedules, { onDelete: 'CASCADE' })
   show: Show;
 
-  @ManyToOne(() => Hall, (hall) => hall.schedules)
+  @ManyToOne(() => Hall, (hall) => hall.schedules, { onDelete: 'CASCADE' })
   hall: Hall;
 
   @OneToMany(() => Seat, (seat) => seat.show)

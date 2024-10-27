@@ -24,6 +24,6 @@ export class Point {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.points)
+  @ManyToOne(() => User, (user) => user.points, { onDelete: 'CASCADE' })
   user: User;
 }
