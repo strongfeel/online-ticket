@@ -17,6 +17,7 @@ import { Show } from './show/entities/show.entity';
 import { ShowModule } from './show/show.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
+import { OrderModule } from './order/order.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -57,6 +58,7 @@ const typeOrmModuleOptions = {
     ShowModule,
     ScheduleModule,
     PaymentModule,
+    OrderModule,
   ],
   controllers: [],
   providers: [],

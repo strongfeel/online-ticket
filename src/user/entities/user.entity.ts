@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Role } from '../types/userRole.type';
+import { Order } from 'src/order/entities/order.entity';
 
 @Index('email', ['email'], { unique: true })
 @Entity({ name: 'users' })
@@ -36,4 +37,7 @@ export class User {
 
   @OneToMany((type) => Point, (point) => point.user)
   points: Point[];
+
+  @OneToMany((type) => Order, (order) => order.user)
+  orders: Order[];
 }

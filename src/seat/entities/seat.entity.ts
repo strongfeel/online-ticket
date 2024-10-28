@@ -1,7 +1,14 @@
 import { Hall } from 'src/hall/entities/hall.entity';
+import { OrderSeat } from 'src/orderSeat/entities/orderSeat.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Show } from 'src/show/entities/show.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'seats' })
 export class Seat {
@@ -24,4 +31,7 @@ export class Seat {
     onDelete: 'CASCADE',
   })
   schedule: Schedule;
+
+  @OneToMany(() => OrderSeat, (orderSeat) => orderSeat.seat)
+  orderSeats: OrderSeat[];
 }

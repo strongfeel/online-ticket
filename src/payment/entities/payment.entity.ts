@@ -1,7 +1,9 @@
+import { Order } from 'src/order/entities/order.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -15,4 +17,7 @@ export class Payment {
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
+
+  @OneToMany((type) => Order, (order) => order.payment)
+  orders: Order[];
 }
