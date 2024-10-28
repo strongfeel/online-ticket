@@ -13,5 +13,5 @@ export const QueryRunnerParam = createParamDecorator(
 
 export const TRANSACTION_ISOLATION_LEVEL = 'TRANSACTION_ISOLATION_LEVEL';
 
-export const Transaction = (isolationLevel: string = 'READ COMMITTED') =>
+export const Transaction = (isolationLevel: string) =>
   SetMetadata(TRANSACTION_ISOLATION_LEVEL, isolationLevel);

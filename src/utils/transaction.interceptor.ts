@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, concatMap, finalize } from 'rxjs/operators';
 import { DataSource } from 'typeorm';
 import { TRANSACTION_ISOLATION_LEVEL } from './transaction.decorator';
 
@@ -27,22 +27,24 @@ export class TransactionInterceptor implements NestInterceptor {
         context.getHandler(),
       ) || 'READ COMMITTED';
 
+    const request = context.switchToHttp().getRequest();
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction(isolationLevel as any);
 
-    const request = context.switchToHttp().getRequest();
-    request.queryRunner = queryRunner;
+    request.queryRunner = queryRunner.manager;
 
     return next.handle().pipe(
-      tap(async () => {
+      concatMap(async (data) => {
         await queryRunner.commitTransaction();
+        return data;
       }),
       catchError(async (error) => {
         await queryRunner.rollbackTransaction();
         throw error;
       }),
-      tap(async () => {
+      finalize(async () => {
         await queryRunner.release();
       }),
     );

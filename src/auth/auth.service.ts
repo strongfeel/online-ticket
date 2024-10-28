@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { compare, hash } from 'bcrypt';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 
 import {
   ConflictException,
@@ -27,6 +27,7 @@ export class AuthService {
     password: string,
     nickname: string,
     role: Role,
+    queryRunner: QueryRunner,
   ) {
     const existingUser = await this.findByEmail(email);
     if (existingUser) {
@@ -44,36 +45,54 @@ export class AuthService {
       );
     }
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction('READ COMMITTED');
+    // const queryRunner = this.dataSource.createQueryRunner();
+    // await queryRunner.connect();
+    // await queryRunner.startTransaction('READ COMMITTED');
 
-    try {
-      const hashedPassword = await hash(password, 10);
-      const newUser = await queryRunner.manager.save(User, {
-        email,
-        role,
-        password: hashedPassword,
-        nickname,
-      });
+    // try {
+    //   const hashedPassword = await hash(password, 10);
+    //   const newUser = await queryRunner.manager.save(User, {
+    //     email,
+    //     role,
+    //     password: hashedPassword,
+    //     nickname,
+    //   });
 
-      await queryRunner.manager.save(Point, {
-        user: newUser,
-        reason: '회원가입 증정 포인트',
-      });
+    //   await queryRunner.manager.save(Point, {
+    //     user: null,
+    //     reason: '회원가입 증정 포인트',
+    //   });
 
-      await queryRunner.commitTransaction();
+    //   await queryRunner.commitTransaction();
 
-      return await this.userRepository.findOne({
-        where: { id: newUser.id },
-        select: ['id', 'email', 'nickname', 'createdAt', 'role'],
-      });
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
-    }
+    //   return await this.userRepository.findOne({
+    //     where: { id: newUser.id },
+    //     select: ['id', 'email', 'nickname', 'createdAt', 'role'],
+    //   });
+    // } catch (err) {
+    //   await queryRunner.rollbackTransaction();
+    //   throw err;
+    // } finally {
+    //   await queryRunner.release();
+    // }
+
+    const hashedPassword = await hash(password, 10);
+    const newUser = await queryRunner.manager.save(User, {
+      email,
+      role,
+      password: hashedPassword,
+      nickname,
+    });
+
+    await queryRunner.manager.save(Point, {
+      user: newUser,
+      reason: '회원가입 증정 포인트',
+    });
+
+    return await this.userRepository.findOne({
+      where: { id: newUser.id },
+      select: ['id', 'email', 'nickname', 'createdAt', 'role'],
+    });
   }
 
   async login(email: string, password: string) {
