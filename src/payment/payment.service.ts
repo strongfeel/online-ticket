@@ -30,4 +30,8 @@ export class PaymentService {
     await this.paymentRepository.delete({ id: id });
     return { message: '해당하는 결제 수단을 삭제 하였습니다.' };
   }
+
+  async findAll() {
+    return await this.paymentRepository.find();
+  }
 }

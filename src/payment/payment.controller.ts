@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Post,
   Query,
   UseGuards,
@@ -28,5 +29,12 @@ export class PaymentController {
   @Delete('/admin/payments')
   async deletePayment(@Query('id') id: number) {
     return await this.paymentService.delete(id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @Get('/admin/payments')
+  async getPayment() {
+    return await this.paymentService.findAll();
   }
 }
