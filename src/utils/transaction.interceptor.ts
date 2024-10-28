@@ -33,7 +33,7 @@ export class TransactionInterceptor implements NestInterceptor {
     await queryRunner.connect();
     await queryRunner.startTransaction(isolationLevel as any);
 
-    request.queryRunner = queryRunner.manager;
+    request.queryRunner = queryRunner;
 
     return next.handle().pipe(
       concatMap(async (data) => {

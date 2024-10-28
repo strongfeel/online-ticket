@@ -1,5 +1,5 @@
 import { Hall } from 'src/hall/entities/hall.entity';
-import { OrderSeat } from 'src/orderSeat/entities/orderSeat.entity';
+import { OrderInfo } from 'src/orderInfo/entities/orderInfo.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Show } from 'src/show/entities/show.entity';
 import {
@@ -32,6 +32,6 @@ export class Seat {
   })
   schedule: Schedule;
 
-  @OneToMany(() => OrderSeat, (orderSeat) => orderSeat.seat)
-  orderSeats: OrderSeat[];
+  @OneToMany(() => OrderInfo, (orderInfo) => orderInfo.seat)
+  orderInfos: OrderInfo[];
 }

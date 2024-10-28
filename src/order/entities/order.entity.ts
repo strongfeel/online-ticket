@@ -1,5 +1,4 @@
-import { Hall } from 'src/hall/entities/hall.entity';
-import { OrderSeat } from 'src/orderSeat/entities/orderSeat.entity';
+import { OrderInfo } from 'src/orderInfo/entities/orderInfo.entity';
 import { Payment } from 'src/payment/entities/payment.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -19,7 +18,7 @@ export class Order {
   @Column({ type: 'int', nullable: false })
   totalPrice: number;
 
-  @Column({ type: 'boolean', nullable: false })
+  @Column({ type: 'boolean', nullable: false, default: false })
   orderState: boolean;
 
   @CreateDateColumn({ type: 'timestamp' })
@@ -33,9 +32,6 @@ export class Order {
   @ManyToOne(() => Payment, (payment) => payment.orders)
   payment: Payment;
 
-  @ManyToOne(() => Hall, (hall) => hall.orders)
-  hall: Hall;
-
-  @OneToMany(() => OrderSeat, (orderSeat) => orderSeat.order)
-  orderSeats: OrderSeat[];
+  @OneToMany(() => OrderInfo, (orderInfo) => orderInfo.order)
+  orderInfos: OrderInfo[];
 }

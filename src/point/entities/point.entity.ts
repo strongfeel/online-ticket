@@ -12,8 +12,8 @@ export class Point {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'int', unsigned: true, default: 0 })
-  pointDetails: number;
+  @Column({ type: 'varchar', default: '0' })
+  pointDetails: string;
 
   @Column({ type: 'int', default: 1000000, nullable: false, unsigned: true })
   totalPoint: number;

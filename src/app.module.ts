@@ -18,6 +18,8 @@ import { ShowModule } from './show/show.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
 import { OrderModule } from './order/order.module';
+import { Order } from './order/entities/order.entity';
+import { OrderInfo } from './orderInfo/entities/orderInfo.entity';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -30,7 +32,17 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User, Point, Hall, Show, Schedule, Seat, Payment],
+    entities: [
+      User,
+      Point,
+      Hall,
+      Show,
+      Schedule,
+      Seat,
+      Payment,
+      Order,
+      OrderInfo,
+    ],
     synchronize: configService.get('DB_SYNC'),
     logging: true,
   }),

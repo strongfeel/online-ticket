@@ -1,4 +1,4 @@
-import { Order } from 'src/order/entities/order.entity';
+import { OrderInfo } from 'src/orderInfo/entities/orderInfo.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Seat } from 'src/seat/entities/seat.entity';
 import { Show } from 'src/show/entities/show.entity';
@@ -40,6 +40,6 @@ export class Hall {
   @OneToMany((type) => Seat, (seat) => seat.hall)
   seats: Seat[];
 
-  @OneToMany((type) => Order, (order) => order.hall)
-  orders: Order[];
+  @OneToMany(() => OrderInfo, (orderInfo) => orderInfo.hall)
+  orderInfos: OrderInfo[];
 }

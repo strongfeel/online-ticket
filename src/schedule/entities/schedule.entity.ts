@@ -1,4 +1,5 @@
 import { Hall } from 'src/hall/entities/hall.entity';
+import { OrderInfo } from 'src/orderInfo/entities/orderInfo.entity';
 import { Seat } from 'src/seat/entities/seat.entity';
 import { Show } from 'src/show/entities/show.entity';
 import {
@@ -23,6 +24,9 @@ export class Schedule {
   @ManyToOne(() => Hall, (hall) => hall.schedules, { onDelete: 'CASCADE' })
   hall: Hall;
 
-  @OneToMany(() => Seat, (seat) => seat.show)
+  @OneToMany(() => Seat, (seat) => seat.schedule)
   seats: Seat[];
+
+  @OneToMany(() => OrderInfo, (orderInfo) => orderInfo.schedule)
+  orderInfos: OrderInfo[];
 }
