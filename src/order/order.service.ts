@@ -21,62 +21,63 @@ export class OrderService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto, userId: number) {
-    const seatData = await this.seatRepository.find({
-      where: { id: In(createOrderDto.seatId) },
-      relations: {
-        schedule: true,
-        show: true,
-        hall: true,
-      },
-    });
-
-    let totalPrice = 0;
-
-    for (let i = 0; i < seatData.length; i++) {
-      totalPrice += seatData[i].show.price;
-    }
-
-    const checkPoint = await this.pointRepository.findOne({
-      where: { user: { id: userId } },
-      order: { createdAt: 'DESC' },
-    });
-
-    if (checkPoint.totalPoint < totalPrice) {
-      throw new BadRequestException('포인트가 부족 합니다.');
-    }
-
-    const seatCount = seatData.length;
-
-    if (seatData[0].show.remainingSeat < seatCount) {
-      throw new BadRequestException('좌석이 부족 합니다.');
-    }
-
-    for (let i = 0; i < seatData.length; i++) {
-      if (seatData[i].seatStatus === false) {
-        throw new BadRequestException(
-          '해당하는 좌석은 이미 예매가 완료 되었습니다.',
-        );
-      }
-    }
-
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction('READ COMMITTED');
 
     try {
+      const seatData = await this.seatRepository.find({
+        where: { id: In(createOrderDto.seatId) },
+        relations: {
+          schedule: true,
+          show: true,
+          hall: true,
+        },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      let totalPrice = 0;
+
+      for (let seat of seatData) {
+        totalPrice += seat.show.price;
+      }
+
+      const checkPoint = await this.pointRepository.findOne({
+        where: { user: { id: userId } },
+        order: { createdAt: 'DESC' },
+      });
+
+      if (checkPoint.totalPoint < totalPrice) {
+        throw new BadRequestException('포인트가 부족 합니다.');
+      }
+
+      const seatCount = seatData.length;
+
+      if (seatData[0].show.remainingSeat < seatCount) {
+        throw new BadRequestException('좌석이 부족 합니다.');
+      }
+
+      for (let seat of seatData) {
+        if (seat.seatStatus === false) {
+          throw new BadRequestException(
+            '해당하는 좌석은 이미 예매가 완료 되었습니다.',
+          );
+        }
+      }
+
       const order = await queryRunner.manager.save(Order, {
         user: { id: userId },
         payment: { id: createOrderDto.paymentId },
         totalPrice: totalPrice,
       });
 
-      for (let i = 0; i < seatData.length; i++) {
-        await queryRunner.manager.save(OrderInfo, {
+      for (let seat of seatData) {
+        await queryRunner.manager.insert(OrderInfo, {
           order: { id: order.id },
-          seat: { id: seatData[i].id },
-          schedule: { id: seatData[i].schedule.id },
-          show: { id: seatData[i].show.id },
-          hall: { id: seatData[i].hall.id },
+          seat: { id: seat.id },
+          schedule: { id: seat.schedule.id },
+          show: { id: seat.show.id },
+          hall: { id: seat.hall.id },
         });
       }
 
@@ -100,10 +101,10 @@ export class OrderService {
         seatCount,
       );
 
-      for (let i = 0; i < seatData.length; i++) {
+      for (let seat of seatData) {
         await queryRunner.manager.update(
           Seat,
-          { id: seatData[i].id },
+          { id: seat.id },
           { seatStatus: false },
         );
       }
@@ -221,5 +222,14 @@ export class OrderService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async findSeats(id: number) {
+    const seat = await this.seatRepository.find({
+      where: { schedule: { id: id }, seatStatus: true },
+      select: { id: true, seatNumber: true },
+    });
+
+    return seat;
   }
 }

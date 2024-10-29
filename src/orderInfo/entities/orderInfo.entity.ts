@@ -28,12 +28,14 @@ export class OrderInfo {
   })
   seat: Seat;
 
-  @ManyToOne(() => Schedule, (schedule) => schedule.orderInfos)
+  @ManyToOne(() => Schedule, (schedule) => schedule.orderInfos, {
+    onDelete: 'CASCADE',
+  })
   schedule: Schedule;
 
-  @ManyToOne(() => Show, (show) => show.orderInfos)
+  @ManyToOne(() => Show, (show) => show.orderInfos, { onDelete: 'CASCADE' })
   show: Show;
 
-  @ManyToOne(() => Hall, (hall) => hall.orderInfos)
+  @ManyToOne(() => Hall, (hall) => hall.orderInfos, { onDelete: 'CASCADE' })
   hall: Hall;
 }

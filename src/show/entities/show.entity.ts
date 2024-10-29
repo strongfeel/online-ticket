@@ -41,7 +41,7 @@ export class Show {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne(() => Hall, (hall) => hall.shows)
+  @ManyToOne(() => Hall, (hall) => hall.shows, { onDelete: 'CASCADE' })
   hall: Hall;
 
   @OneToMany(() => Schedule, (schedule) => schedule.show)

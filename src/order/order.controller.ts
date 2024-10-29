@@ -37,4 +37,9 @@ export class OrderController {
     const userId = user.id;
     return await this.orderService.delete(userId, id);
   }
+
+  @Get('seats')
+  async findSeats(@Query('id') id: number) {
+    return await this.orderService.findSeats(id);
+  }
 }
