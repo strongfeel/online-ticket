@@ -55,7 +55,7 @@ export class ScheduleService {
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
-    await queryRunner.startTransaction('READ COMMITTED');
+    await queryRunner.startTransaction('REPEATABLE READ');
 
     try {
       await queryRunner.manager.save(Schedule, schedules);
@@ -117,10 +117,13 @@ export class ScheduleService {
       );
     }
 
-    const schedule = await this.scheduleRepository.findOne({
+    const schedule = await this.scheduleRepository.find({
       where: {
         show: { id: show.id },
         hall: { id: hall.id },
+      },
+      order: {
+        scheduleDate: 'DESC',
       },
     });
 
