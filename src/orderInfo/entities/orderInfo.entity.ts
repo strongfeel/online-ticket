@@ -23,7 +23,9 @@ export class OrderInfo {
   })
   order: Order;
 
-  @ManyToOne(() => Seat, (seat) => seat.orderInfos)
+  @ManyToOne(() => Seat, (seat) => seat.orderInfos, {
+    onDelete: 'CASCADE',
+  })
   seat: Seat;
 
   @ManyToOne(() => Schedule, (schedule) => schedule.orderInfos)
