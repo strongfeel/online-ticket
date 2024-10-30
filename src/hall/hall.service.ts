@@ -54,36 +54,13 @@ export class HallService {
       }
     }
 
-    const hall = await this.hallRepository.findOne({ where: { id } });
+    await this.hallRepository.update(id, updateHallDto);
+    const updatedHall = await this.hallRepository.findOne({ where: { id } });
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction('READ COMMITTED');
-
-    try {
-      if (updateHallDto.totalSeat) {
-        await queryRunner.manager.update(
-          Hall,
-          { id },
-          { totalSeat: updateHallDto.totalSeat },
-        );
-
-        await queryRunner.manager.update(
-          Show,
-          { hall: hall },
-          { remainingSeat: updateHallDto.totalSeat },
-        );
-      }
-
-      await queryRunner.manager.update(Hall, { id }, updateHallDto);
-
-      return { message: '공연장 수정을 성공적으로 완료 하였습니다.' };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
-    }
+    return {
+      message: '공연장 수정을 성공적으로 완료 하였습니다.',
+      updatedHall,
+    };
   }
 
   async delete(id: number) {

@@ -8,7 +8,7 @@ import _ from 'lodash';
 import { Hall } from 'src/hall/entities/hall.entity';
 import { Seat } from 'src/seat/entities/seat.entity';
 import { Show } from 'src/show/entities/show.entity';
-import { DataSource, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Schedule } from './entities/schedule.entity';
@@ -20,10 +20,12 @@ export class ScheduleService {
     private scheduleRepository: Repository<Schedule>,
     @InjectRepository(Show) private showRepository: Repository<Show>,
     @InjectRepository(Hall) private hallRepository: Repository<Hall>,
-    private dataSource: DataSource,
   ) {}
 
-  async create(createScheduleDto: CreateScheduleDto) {
+  async create(
+    createScheduleDto: CreateScheduleDto,
+    transactionManager: EntityManager,
+  ) {
     const hall = await this.hallRepository.findOne({
       where: { id: createScheduleDto.hallId },
     });
@@ -53,34 +55,21 @@ export class ScheduleService {
       return schedule;
     });
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction('REPEATABLE READ');
+    await transactionManager.save(Schedule, schedules);
 
-    try {
-      await queryRunner.manager.save(Schedule, schedules);
-
-      for (let i = 0; i < schedules.length; i++) {
-        for (let j = 1; j <= schedules[i].hall.totalSeat; j++) {
-          const seat = await queryRunner.manager.save(Seat, {
-            seatNumber: j,
-            seatStatus: true,
-            schedule: { id: schedules[i].id },
-            hall: { id: schedules[i].hall.id },
-            show: { id: schedules[i].show.id },
-          });
-        }
+    for (let i = 0; i < schedules.length; i++) {
+      for (let j = 1; j <= schedules[i].hall.totalSeat; j++) {
+        const seat = await transactionManager.save(Seat, {
+          seatNumber: j,
+          seatStatus: true,
+          schedule: { id: schedules[i].id },
+          hall: { id: schedules[i].hall.id },
+          show: { id: schedules[i].show.id },
+        });
       }
-
-      await queryRunner.commitTransaction();
-
-      return { message: '스케쥴과 좌석을 생성하였습니다.' };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
     }
+
+    return { message: '스케쥴과 좌석을 생성하였습니다.' };
   }
 
   async update(id: number, updateScheduleDto: UpdateScheduleDto) {

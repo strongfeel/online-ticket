@@ -94,6 +94,19 @@ export class ShowService {
     return getShow;
   }
 
+  async findShowName(showName: string) {
+    const getShow = await this.showRepository.findOne({
+      where: { showName: showName },
+      relations: {
+        hall: true,
+      },
+    });
+    if (!getShow) {
+      throw new BadRequestException('해당하는 이름의 공연이 없습니다.');
+    }
+    return getShow;
+  }
+
   async findOne(id: number) {
     await this.verifyShowById(id);
 
@@ -122,19 +135,6 @@ export class ShowService {
     }
 
     return { getShow, message: '해당하는 공연은 예매가 불가능 합니다.' };
-  }
-
-  async findShowName(showName: string) {
-    const getShow = await this.showRepository.findOne({
-      where: { showName: showName },
-      relations: {
-        hall: true,
-      },
-    });
-    if (!getShow) {
-      throw new BadRequestException('해당하는 이름의 공연이 없습니다.');
-    }
-    return getShow;
   }
 
   private async verifyShowById(id: number) {

@@ -24,4 +24,8 @@ export class UpdateShowDto {
   @IsNumber()
   @IsOptional()
   hallId?: number;
+
+  @IsNumber()
+  @IsOptional()
+  remainingSeat?: number;
 }

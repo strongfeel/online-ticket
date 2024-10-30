@@ -1,17 +1,21 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/user/entities/user.entity';
 import { UserInfo } from 'src/utils/userInfo.decorator';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderService } from './order.service';
+import { TransactionInterceptor } from 'src/utils/transaction.interceptor';
+import { TransactionManager } from 'src/utils/transaction.decorator';
 
 @Controller('api')
 export class OrderController {
@@ -19,9 +23,18 @@ export class OrderController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('orders')
-  async order(@UserInfo() user: User, @Body() createOrderDto: CreateOrderDto) {
+  @UseInterceptors(ClassSerializerInterceptor, TransactionInterceptor)
+  async order(
+    @UserInfo() user: User,
+    @Body() createOrderDto: CreateOrderDto,
+    @TransactionManager() transactionManager,
+  ) {
     const userId = user.id;
-    return await this.orderService.create(createOrderDto, userId);
+    return await this.orderService.create(
+      createOrderDto,
+      userId,
+      transactionManager,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -33,9 +46,14 @@ export class OrderController {
 
   @UseGuards(AuthGuard('jwt'))
   @Delete('orders')
-  async delete(@UserInfo() user: User, @Query('id') id: number) {
+  @UseInterceptors(ClassSerializerInterceptor, TransactionInterceptor)
+  async delete(
+    @UserInfo() user: User,
+    @Query('id') id: number,
+    @TransactionManager() transactionManager,
+  ) {
     const userId = user.id;
-    return await this.orderService.delete(userId, id);
+    return await this.orderService.delete(userId, id, transactionManager);
   }
 
   @Get('seats')

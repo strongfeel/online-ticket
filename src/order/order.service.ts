@@ -5,7 +5,7 @@ import { OrderInfo } from 'src/orderInfo/entities/orderInfo.entity';
 import { Point } from 'src/point/entities/point.entity';
 import { Seat } from 'src/seat/entities/seat.entity';
 import { Show } from 'src/show/entities/show.entity';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './entities/order.entity';
 
@@ -14,13 +14,14 @@ export class OrderService {
   constructor(
     @InjectRepository(Order) private orderRepository: Repository<Order>,
     @InjectRepository(Seat) private seatRepository: Repository<Seat>,
-    @InjectRepository(OrderInfo)
-    private orderDataRepository: Repository<OrderInfo>,
     @InjectRepository(Point) private pointRepository: Repository<Point>,
-    private dataSource: DataSource,
   ) {}
 
-  async create(createOrderDto: CreateOrderDto, userId: number) {
+  async create(
+    createOrderDto: CreateOrderDto,
+    userId: number,
+    transactionManager: EntityManager,
+  ) {
     const seatData = await this.seatRepository.find({
       where: { id: In(createOrderDto.seatId) },
       relations: {
@@ -28,6 +29,7 @@ export class OrderService {
         show: true,
         hall: true,
       },
+      lock: { mode: 'pessimistic_read' },
     });
 
     let totalPrice = 0;
@@ -39,6 +41,7 @@ export class OrderService {
     const checkPoint = await this.pointRepository.findOne({
       where: { user: { id: userId } },
       order: { createdAt: 'DESC' },
+      lock: { mode: 'pessimistic_read' },
     });
 
     if (checkPoint.totalPoint < totalPrice) {
@@ -58,80 +61,66 @@ export class OrderService {
         );
       }
     }
+    const order = await transactionManager.save(Order, {
+      user: { id: userId },
+      payment: { id: createOrderDto.paymentId },
+      totalPrice: totalPrice,
+    });
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction('REPEATABLE READ');
-
-    try {
-      const order = await queryRunner.manager.save(Order, {
-        user: { id: userId },
-        payment: { id: createOrderDto.paymentId },
-        totalPrice: totalPrice,
+    for (let seat of seatData) {
+      await transactionManager.insert(OrderInfo, {
+        order: { id: order.id },
+        seat: { id: seat.id },
+        schedule: { id: seat.schedule.id },
+        show: { id: seat.show.id },
+        hall: { id: seat.hall.id },
       });
-
-      for (let seat of seatData) {
-        await queryRunner.manager.insert(OrderInfo, {
-          order: { id: order.id },
-          seat: { id: seat.id },
-          schedule: { id: seat.schedule.id },
-          show: { id: seat.show.id },
-          hall: { id: seat.hall.id },
-        });
-      }
-
-      await queryRunner.manager.save(Point, {
-        user: { id: userId },
-        pointDetails: `- ${totalPrice}`,
-        reason: '공연 예매',
-        totalPoint: checkPoint.totalPoint - totalPrice,
-      });
-
-      await queryRunner.manager.update(
-        Order,
-        { id: order.id },
-        { orderState: true },
-      );
-
-      await queryRunner.manager.decrement(
-        Show,
-        { id: seatData[0].show.id },
-        'remainingSeat',
-        seatCount,
-      );
-
-      for (let seat of seatData) {
-        await queryRunner.manager.update(
-          Seat,
-          { id: seat.id },
-          { seatStatus: false },
-        );
-      }
-
-      await queryRunner.commitTransaction();
-
-      const returnOrder = await this.orderRepository.findOne({
-        where: { id: order.id },
-        relations: {
-          orderInfos: {
-            hall: true,
-            show: true,
-            schedule: true,
-            seat: true,
-          },
-        },
-      });
-
-      return {
-        message: '공연 예매 완료하였습니다.',
-        returnOrder,
-      };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
     }
+
+    await transactionManager.save(Point, {
+      user: { id: userId },
+      pointDetails: `- ${totalPrice}`,
+      reason: '공연 예매',
+      totalPoint: checkPoint.totalPoint - totalPrice,
+    });
+
+    await transactionManager.update(
+      Order,
+      { id: order.id },
+      { orderState: true },
+    );
+
+    await transactionManager.decrement(
+      Show,
+      { id: seatData[0].show.id },
+      'remainingSeat',
+      seatCount,
+    );
+
+    for (let seat of seatData) {
+      await transactionManager.update(
+        Seat,
+        { id: seat.id },
+        { seatStatus: false },
+      );
+    }
+
+    const returnOrder = await this.orderRepository.findOne({
+      where: { id: order.id },
+      relations: {
+        orderInfos: {
+          hall: true,
+          show: true,
+          schedule: true,
+          seat: true,
+        },
+      },
+    });
+
+    return {
+      message: '공연 예매 완료하였습니다.',
+      returnOrder,
+    };
   }
 
   async findAll(userId: number) {
@@ -154,7 +143,7 @@ export class OrderService {
     return findOrder;
   }
 
-  async delete(userId: number, id: number) {
+  async delete(userId: number, id: number, transactionManager: EntityManager) {
     const getOrder = await this.orderRepository.findOne({
       where: { id: id, user: { id: userId } },
       relations: {
@@ -190,37 +179,24 @@ export class OrderService {
       order: { createdAt: 'DESC' },
     });
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction('READ COMMITTED');
+    await transactionManager.softDelete(Order, { id: id });
 
-    try {
-      await queryRunner.manager.softDelete(Order, { id: id });
-
-      for (let i = 0; i < getOrder.orderInfos.length; i++) {
-        await queryRunner.manager.update(
-          Seat,
-          { id: getOrder.orderInfos[i].seat.id },
-          { seatStatus: true },
-        );
-      }
-
-      await queryRunner.manager.save(Point, {
-        user: { id: userId },
-        pointDetails: `+ ${getOrder.totalPrice}`,
-        reason: '예매 취소',
-        totalPoint: point.totalPoint + getOrder.totalPrice,
-      });
-
-      await queryRunner.commitTransaction();
-
-      return { message: '해당하는 예매를 성공적으로 취소했습니다.' };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw err;
-    } finally {
-      await queryRunner.release();
+    for (let i = 0; i < getOrder.orderInfos.length; i++) {
+      await transactionManager.update(
+        Seat,
+        { id: getOrder.orderInfos[i].seat.id },
+        { seatStatus: true },
+      );
     }
+
+    await transactionManager.save(Point, {
+      user: { id: userId },
+      pointDetails: `+ ${getOrder.totalPrice}`,
+      reason: '예매 취소',
+      totalPoint: point.totalPoint + getOrder.totalPrice,
+    });
+
+    return { message: '해당하는 예매를 성공적으로 취소했습니다.' };
   }
 
   async findSeats(id: number) {

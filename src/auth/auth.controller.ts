@@ -1,5 +1,14 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Post,
+  UseInterceptors,
+} from '@nestjs/common';
 
+import { TransactionManager } from 'src/utils/transaction.decorator';
+import { TransactionInterceptor } from 'src/utils/transaction.interceptor';
 import { LoginDto } from '../auth/dto/login.dto';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { AuthService } from './auth.service';
@@ -9,9 +18,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/register')
-  async register(@Body() registerDto: RegisterDto) {
+  @UseInterceptors(ClassSerializerInterceptor, TransactionInterceptor)
+  async register(
+    @Body() registerDto: RegisterDto,
+    @TransactionManager() transactionManager,
+  ) {
     if (registerDto.password !== registerDto.confirmPassword) {
-      throw new UnauthorizedException('비밀번호 확인을 다시 작성해 주세요.');
+      throw new BadRequestException('비밀번호 확인을 다시 작성해 주세요.');
     }
 
     return await this.authService.register(
@@ -19,6 +32,7 @@ export class AuthController {
       registerDto.password,
       registerDto.nickname,
       registerDto.role,
+      transactionManager,
     );
   }
 
