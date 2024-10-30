@@ -43,7 +43,7 @@ export class ShowService {
       showExplain: createShowDto.showExplain,
       category: createShowDto.category,
       price: createShowDto.price,
-      remainingSeat: checkHall.totalSeat,
+      remainingSeat: createShowDto.remainingSeat,
     });
 
     return {

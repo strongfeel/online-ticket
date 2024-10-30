@@ -24,4 +24,8 @@ export class CreateShowDto {
   @IsNumber()
   @IsNotEmpty({ message: '공연 가격을 입력해 주세요.' })
   price: number;
+
+  @IsNumber()
+  @IsNotEmpty({ message: '공연 좌석 수를 입력해 주세요.' })
+  remainingSeat: number;
 }
