@@ -22,14 +22,14 @@ export class OrderService {
     userId: number,
     transactionManager: EntityManager,
   ) {
-    const seatData = await this.seatRepository.find({
+    const seatData = await transactionManager.find(Seat, {
       where: { id: In(createOrderDto.seatId) },
       relations: {
         schedule: true,
         show: true,
         hall: true,
       },
-      lock: { mode: 'pessimistic_read' },
+      lock: { mode: 'pessimistic_write' },
     });
 
     let totalPrice = 0;
@@ -41,7 +41,6 @@ export class OrderService {
     const checkPoint = await this.pointRepository.findOne({
       where: { user: { id: userId } },
       order: { createdAt: 'DESC' },
-      lock: { mode: 'pessimistic_read' },
     });
 
     if (checkPoint.totalPoint < totalPrice) {
@@ -105,7 +104,7 @@ export class OrderService {
       );
     }
 
-    const returnOrder = await this.orderRepository.findOne({
+    const returnOrder = await transactionManager.findOne(Order, {
       where: { id: order.id },
       relations: {
         orderInfos: {
