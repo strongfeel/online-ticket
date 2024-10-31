@@ -38,7 +38,7 @@ export class OrderService {
       totalPrice += seat.show.price;
     }
 
-    const checkPoint = await this.pointRepository.findOne({
+    const checkPoint = await transactionManager.findOne(Point, {
       where: { user: { id: userId } },
       order: { createdAt: 'DESC' },
     });

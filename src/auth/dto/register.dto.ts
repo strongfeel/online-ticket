@@ -4,7 +4,6 @@ import {
   IsNotEmpty,
   IsString,
   Matches,
-  MinLength,
 } from 'class-validator';
 import { Role } from 'src/user/types/userRole.type';
 
