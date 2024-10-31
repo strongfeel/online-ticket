@@ -12,12 +12,14 @@ import { TransactionInterceptor } from 'src/utils/transaction.interceptor';
 import { LoginDto } from '../auth/dto/login.dto';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { AuthService } from './auth.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('api')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/register')
+  @ApiBearerAuth()
   @UseInterceptors(ClassSerializerInterceptor, TransactionInterceptor)
   async register(
     @Body() registerDto: RegisterDto,

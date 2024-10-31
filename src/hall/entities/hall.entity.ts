@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { OrderInfo } from 'src/orderInfo/entities/orderInfo.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Seat } from 'src/seat/entities/seat.entity';
