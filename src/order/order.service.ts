@@ -5,7 +5,7 @@ import { OrderInfo } from 'src/orderInfo/entities/orderInfo.entity';
 import { Point } from 'src/point/entities/point.entity';
 import { Seat } from 'src/seat/entities/seat.entity';
 import { Show } from 'src/show/entities/show.entity';
-import { DataSource, EntityManager, In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './entities/order.entity';
 
