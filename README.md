@@ -1,6 +1,6 @@
 ## 기술 스택
 ![TS](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
- <img src="https://img.shields.io/badge/Nest.JS-#E0234E?style=flat&logo=Nest.JS&logoColor=white"/>
+ <img src="https://img.shields.io/badge/Nest.JS-E0234E?style=flat&logo=Nest.JS&logoColor=white"/>
 
 ## ERD
 ![스크린샷 2024-11-01 091939](https://github.com/user-attachments/assets/84157822-4bba-458c-813d-d856ee5b6da3)
