@@ -1,6 +1,5 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## 기술 스택
+#E0234E
 
 ## ERD
 ![스크린샷 2024-11-01 091939](https://github.com/user-attachments/assets/84157822-4bba-458c-813d-d856ee5b6da3)
