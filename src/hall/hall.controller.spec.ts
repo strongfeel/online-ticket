@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HallController } from './hall.controller';
 import { HallService } from './hall.service';
 import { RolesGuard } from 'src/auth/roles.guard';
-import { Role } from 'src/user/types/userRole.type';
 import { CreateHallDto } from './dto/create-hall.dto';
 import { UpdateHallDto } from './dto/update-hall.dto';
 
@@ -36,7 +35,7 @@ describe('HallController', () => {
   });
 
   describe('공연장 테스트', () => {
-    it('공연 만들기 성공 검증', async () => {
+    it('공연장 만들기 성공 검증', async () => {
       const createHallDto: CreateHallDto = {
         hallName: '고척돔',
         location: '서울',
@@ -52,7 +51,7 @@ describe('HallController', () => {
       expect(service.create).toHaveBeenCalledWith(createHallDto);
     });
 
-    it('공연 수정 성공 로직', async () => {
+    it('공연장 수정 성공 검증', async () => {
       const id: number = 1;
       const updateHallDto: UpdateHallDto = {
         hallName: '고척돔2',
@@ -67,10 +66,30 @@ describe('HallController', () => {
       expect(service.update).toHaveBeenCalledWith(id, updateHallDto);
     });
 
-    it('공연 삭제 성공 로직', async () => {
+    it('공연장 삭제 성공 검증', async () => {
       const id = 1;
 
-      (service.delete as jest.Mock).mockResolvedValue(id);
+      (service.delete as jest.Mock).mockResolvedValue({ deleted: true });
+
+      const result = await controller.deleteHall(id);
+
+      expect(result).toEqual({ deleted: true });
+      expect(service.delete).toHaveBeenCalledTimes(1);
+      expect(service.delete).toHaveBeenCalledWith(id);
+    });
+
+    it('공연장 목록 조회 검증', async () => {
+      const halls = [
+        { hallName: '고척돔', location: '서울', totalSeat: 100 },
+        { hallName: '잠실실내체육관', location: '서울', totalSeat: 80 },
+      ];
+
+      (service.findAll as jest.Mock).mockResolvedValue(halls);
+
+      const result = await controller.findAll();
+
+      expect(result).toEqual(halls);
+      expect(service.findAll).toHaveBeenCalledTimes(1);
     });
   });
 });
