@@ -1,5 +1,5 @@
 ## 기술 스택
-[TS](https://img.shields.io/badge/ts--node-3178C6?style=for-the-badge&logo=ts-node&logoColor=white)
+![TS](https://img.shields.io/badge/ts--node-3178C6?style=for-the-badge&logo=ts-node&logoColor=white)
 
 ## ERD
 ![스크린샷 2024-11-01 091939](https://github.com/user-attachments/assets/84157822-4bba-458c-813d-d856ee5b6da3)
